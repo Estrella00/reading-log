@@ -184,6 +184,11 @@
 
   .stars-display { color: var(--gold); font-size: 14px; letter-spacing: 1px; }
   .stars-display .empty-star { color: var(--border); }
+  .stars-display .half-star {
+    background: linear-gradient(to right, var(--gold) 50%, var(--border) 50%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; color: transparent;
+  }
 
   .book-actions { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
   .btn-sm {
@@ -357,13 +362,22 @@
   .error-msg { color: var(--danger); font-size: 13px; margin-top: 4px; display: none; letter-spacing: 0.04em; }
 
   /* ── Star Rating ─────────────────────────────────── */
-  .stars-input { display: flex; gap: 4px; }
-  .star-btn {
-    font-size: 28px; cursor: pointer; color: var(--border); background: none; border: none;
-    padding: 0 2px; line-height: 1; transition: color 0.12s, transform 0.1s;
+  .stars-input { display: flex; gap: 2px; }
+  .star-slot {
+    position: relative; font-size: 28px; color: var(--border);
+    cursor: pointer; line-height: 1; padding: 0 2px; transition: transform 0.1s;
+    user-select: none; -webkit-user-select: none;
   }
-  .star-btn:hover  { transform: scale(1.15); }
-  .star-btn.filled { color: var(--gold); }
+  .star-slot:hover { transform: scale(1.1); }
+  .star-slot .half { position: absolute; top: 0; bottom: 0; width: 50%; z-index: 1; cursor: pointer; }
+  .star-slot .half.left  { left: 0; }
+  .star-slot .half.right { right: 0; }
+  .star-slot.filled-full { color: var(--gold); }
+  .star-slot.filled-half {
+    background: linear-gradient(to right, var(--gold) 50%, var(--border) 50%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; color: transparent;
+  }
 
   /* ── Form Actions ────────────────────────────────── */
   .form-actions {
@@ -401,6 +415,16 @@
     white-space: nowrap; pointer-events: none;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Sort Bar ────────────────────────────────────── */
+  .sort-bar { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .sort-btn {
+    padding: 4px 12px; border-radius: 20px; font-family: inherit; font-size: 13px;
+    cursor: pointer; border: 1px solid var(--border); background: var(--bg);
+    color: var(--text-3); transition: all 0.15s; letter-spacing: 0.04em;
+  }
+  .sort-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .sort-btn.active { background: var(--primary); border-color: var(--primary); color: #fdfaf4; }
 
   /* ── Divider ─────────────────────────────────────── */
   .form-divider {
@@ -461,6 +485,12 @@
     <div class="search-bar" id="searchBar">
       <input type="text" id="searchInput" placeholder="搜尋書名或作者…" oninput="renderLists()">
     </div>
+    <div class="sort-bar" id="sortBar" style="display:none;">
+      <button class="sort-btn active" data-sort="addedDate"    onclick="setFinishedSort('addedDate')">新增日期</button>
+      <button class="sort-btn"        data-sort="startDate"    onclick="setFinishedSort('startDate')">開始日期</button>
+      <button class="sort-btn"        data-sort="finishedDate" onclick="setFinishedSort('finishedDate')">讀完日期</button>
+      <button class="sort-btn"        data-sort="rating"       onclick="setFinishedSort('rating')">評分</button>
+    </div>
     <div id="wantList"></div>
     <div id="readingList"   style="display:none;"></div>
     <div id="finishedList"  style="display:none;"></div>
@@ -518,11 +548,11 @@
       <div class="form-group">
         <label>評分 <span class="label-opt">（選填）</span></label>
         <div class="stars-input" id="addStars">
-          <button class="star-btn" data-v="1" onclick="setAddRating(1)">★</button>
-          <button class="star-btn" data-v="2" onclick="setAddRating(2)">★</button>
-          <button class="star-btn" data-v="3" onclick="setAddRating(3)">★</button>
-          <button class="star-btn" data-v="4" onclick="setAddRating(4)">★</button>
-          <button class="star-btn" data-v="5" onclick="setAddRating(5)">★</button>
+          <span class="star-slot" data-star="1"><span class="half left" onclick="setAddRating(0.5)"></span><span class="half right" onclick="setAddRating(1)"></span>★</span>
+          <span class="star-slot" data-star="2"><span class="half left" onclick="setAddRating(1.5)"></span><span class="half right" onclick="setAddRating(2)"></span>★</span>
+          <span class="star-slot" data-star="3"><span class="half left" onclick="setAddRating(2.5)"></span><span class="half right" onclick="setAddRating(3)"></span>★</span>
+          <span class="star-slot" data-star="4"><span class="half left" onclick="setAddRating(3.5)"></span><span class="half right" onclick="setAddRating(4)"></span>★</span>
+          <span class="star-slot" data-star="5"><span class="half left" onclick="setAddRating(4.5)"></span><span class="half right" onclick="setAddRating(5)"></span>★</span>
         </div>
       </div>
       <div class="form-group">
@@ -556,11 +586,11 @@
     <div class="form-group">
       <label>評分 <span class="label-opt">（選填）</span></label>
       <div class="stars-input" id="finishStars">
-        <button class="star-btn" data-v="1" onclick="setRating('finish',1)">★</button>
-        <button class="star-btn" data-v="2" onclick="setRating('finish',2)">★</button>
-        <button class="star-btn" data-v="3" onclick="setRating('finish',3)">★</button>
-        <button class="star-btn" data-v="4" onclick="setRating('finish',4)">★</button>
-        <button class="star-btn" data-v="5" onclick="setRating('finish',5)">★</button>
+        <span class="star-slot" data-star="1"><span class="half left" onclick="setRating('finish',0.5)"></span><span class="half right" onclick="setRating('finish',1)"></span>★</span>
+        <span class="star-slot" data-star="2"><span class="half left" onclick="setRating('finish',1.5)"></span><span class="half right" onclick="setRating('finish',2)"></span>★</span>
+        <span class="star-slot" data-star="3"><span class="half left" onclick="setRating('finish',2.5)"></span><span class="half right" onclick="setRating('finish',3)"></span>★</span>
+        <span class="star-slot" data-star="4"><span class="half left" onclick="setRating('finish',3.5)"></span><span class="half right" onclick="setRating('finish',4)"></span>★</span>
+        <span class="star-slot" data-star="5"><span class="half left" onclick="setRating('finish',4.5)"></span><span class="half right" onclick="setRating('finish',5)"></span>★</span>
       </div>
     </div>
     <div class="form-group">
@@ -595,11 +625,11 @@
     <div class="form-group">
       <label>評分</label>
       <div class="stars-input" id="viewStars">
-        <button class="star-btn" data-v="1" onclick="setRating('view',1)">★</button>
-        <button class="star-btn" data-v="2" onclick="setRating('view',2)">★</button>
-        <button class="star-btn" data-v="3" onclick="setRating('view',3)">★</button>
-        <button class="star-btn" data-v="4" onclick="setRating('view',4)">★</button>
-        <button class="star-btn" data-v="5" onclick="setRating('view',5)">★</button>
+        <span class="star-slot" data-star="1"><span class="half left" onclick="setRating('view',0.5)"></span><span class="half right" onclick="setRating('view',1)"></span>★</span>
+        <span class="star-slot" data-star="2"><span class="half left" onclick="setRating('view',1.5)"></span><span class="half right" onclick="setRating('view',2)"></span>★</span>
+        <span class="star-slot" data-star="3"><span class="half left" onclick="setRating('view',2.5)"></span><span class="half right" onclick="setRating('view',3)"></span>★</span>
+        <span class="star-slot" data-star="4"><span class="half left" onclick="setRating('view',3.5)"></span><span class="half right" onclick="setRating('view',4)"></span>★</span>
+        <span class="star-slot" data-star="5"><span class="half left" onclick="setRating('view',4.5)"></span><span class="half right" onclick="setRating('view',5)"></span>★</span>
       </div>
     </div>
     <div class="form-group">
@@ -625,6 +655,9 @@ let addStatus  = 'want';
 let addRating  = 0;
 let editingId  = null;
 let editingSrc = null; // 'want' | 'reading' | 'finished'
+
+// Sort state
+let finishedSort = 'addedDate';
 
 // Calendar state
 let calYear    = new Date().getFullYear();
@@ -685,6 +718,7 @@ function switchTab(tab) {
   document.getElementById('finishedList').style.display   = tab === 'finished' ? '' : 'none';
   document.getElementById('calendarPanel').style.display  = tab === 'cal'      ? '' : 'none';
   document.getElementById('searchBar').style.display      = tab === 'cal'      ? 'none' : '';
+  document.getElementById('sortBar').style.display        = tab === 'finished' ? '' : 'none';
 
   if (tab !== 'cal') document.getElementById('searchInput').value = '';
   renderAll();
@@ -706,7 +740,7 @@ function renderLists() {
   const filter = list => q ? list.filter(b => b.title.toLowerCase().includes(q) || (b.author||'').toLowerCase().includes(q)) : list;
 
   // ── Want ──
-  const want = filter(data.wantToRead);
+  const want = filter([...data.wantToRead].sort((a, b) => (b.addedDate||'').localeCompare(a.addedDate||'')));
   document.getElementById('wantList').innerHTML = want.length === 0
     ? emptyState(q ? '找不到符合的書籍' : '書單是空的', q ? '試試其他關鍵字' : '點擊右上角「新增書籍」開始建立書單')
     : want.map(b => `
@@ -746,13 +780,17 @@ function renderLists() {
       </div>`).join('');
 
   // ── Finished ──
-  const finished = filter(data.finished);
+  const sortFns = {
+    addedDate:    (a, b) => (b.addedDate||'').localeCompare(a.addedDate||''),
+    startDate:    (a, b) => (b.startDate||'').localeCompare(a.startDate||''),
+    finishedDate: (a, b) => (b.finishedDate||'').localeCompare(a.finishedDate||''),
+    rating:       (a, b) => (b.rating||0) - (a.rating||0)
+  };
+  const finished = filter([...data.finished].sort(sortFns[finishedSort] || sortFns.addedDate));
   document.getElementById('finishedList').innerHTML = finished.length === 0
     ? emptyState(q ? '找不到符合的書籍' : '還沒有讀完的書', q ? '試試其他關鍵字' : '從書單點「讀完了」即可移到這裡')
     : finished.map(b => {
-        const stars = b.rating
-          ? '★'.repeat(b.rating) + '<span class="empty-star">' + '★'.repeat(5 - b.rating) + '</span>'
-          : '';
+        const stars = starsInner(b.rating);
         return `
         <div class="book-card finished-card">
           <div class="book-info">
@@ -838,8 +876,11 @@ function setAddRating(val) {
 }
 
 function renderAddStars(val) {
-  document.getElementById('addStars').querySelectorAll('.star-btn').forEach(s => {
-    s.classList.toggle('filled', parseInt(s.dataset.v) <= val);
+  document.getElementById('addStars').querySelectorAll('.star-slot').forEach(s => {
+    const sv = parseInt(s.dataset.star);
+    s.classList.remove('filled-full', 'filled-half');
+    if (val >= sv) s.classList.add('filled-full');
+    else if (val >= sv - 0.5) s.classList.add('filled-half');
   });
 }
 
@@ -1002,9 +1043,30 @@ function submitUpdate() {
 function setRating(mode, val) { ratings[mode] = val; renderStars(mode, val); }
 function renderStars(mode, val) {
   const id = mode === 'finish' ? 'finishStars' : 'viewStars';
-  document.getElementById(id).querySelectorAll('.star-btn').forEach(s => {
-    s.classList.toggle('filled', parseInt(s.dataset.v) <= val);
+  document.getElementById(id).querySelectorAll('.star-slot').forEach(s => {
+    const sv = parseInt(s.dataset.star);
+    s.classList.remove('filled-full', 'filled-half');
+    if (val >= sv) s.classList.add('filled-full');
+    else if (val >= sv - 0.5) s.classList.add('filled-half');
   });
+}
+function setFinishedSort(s) {
+  finishedSort = s;
+  document.querySelectorAll('.sort-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.sort === s);
+  });
+  renderLists();
+}
+
+function starsInner(rating) {
+  if (!rating) return '';
+  let s = '';
+  for (let i = 1; i <= 5; i++) {
+    if (rating >= i) s += '★';
+    else if (rating >= i - 0.5) s += '<span class="half-star">★</span>';
+    else s += '<span class="empty-star">★</span>';
+  }
+  return s;
 }
 
 // ── Calendar ──────────────────────────────────────────
@@ -1090,7 +1152,7 @@ function renderCalendar() {
     html += `<div class="cal-no-books">${calSelDate ? '這天沒有讀書紀錄' : '這個月還沒有讀書紀錄'}</div>`;
   } else {
     html += listBooks.map(b => {
-      const stars = b.rating ? '★'.repeat(b.rating) + '<span class="empty-star">' + '★'.repeat(5 - b.rating) + '</span>' : '';
+      const stars = starsInner(b.rating);
       const hl    = calSelDate && b.finishedDate === calSelDate;
       return `<div class="cal-book-row${hl ? ' highlighted' : ''}">
         <div class="cal-book-date">${b.finishedDate ? shortDate(b.finishedDate) : '—'}</div>
